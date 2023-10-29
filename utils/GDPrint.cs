@@ -5,9 +5,7 @@ public class GDPrint
 {
     public static string GetTimestamp()
     {
-        DateTime currentDateTime = DateTime.Now;
-        string formattedTime = currentDateTime.ToString("dd.MM.yyyy-HH:mm:ss");
-        return formattedTime;
+        return DateTime.Now.ToString("dd.MM.yyyy-HH:mm:ss");
     }
 
     public static void Print(string text)
