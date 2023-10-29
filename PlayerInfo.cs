@@ -7,6 +7,6 @@ public class PlayerInfo
 
     public override string ToString()
     {
-        return $"Name : {Name}, Id : {Id}";
+        return $"Id : {Id} - Name : {Name}";
     }
 }

@@ -5,32 +5,40 @@ using System.Linq;
 public partial class MultiplayerController : Control
 {
 	[Export]
-	private int port = 8910;
+	private int _port = 8910;
 	[Export]
-	private string ip = "127.0.0.1";
+	private string _ip = "127.0.0.1";
 
-	private ENetMultiplayerPeer peer;
+	[Export]
+	private int _maxPlayerCount = 2;
+
+	private ENetMultiplayerPeer _peer;
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		GDPrint.Print("<<< START ELDRALITH SERVER >>>");
 		Multiplayer.PeerConnected += PlayerConnected;
 		Multiplayer.PeerDisconnected += PlayerDisconnected;
 
 		if (OS.GetCmdlineArgs().Contains("--server"))
 		{
+			GDPrint.Print("Starting server in headless mode.");
 			HostGame();
 		}
 	}
 
 	private void PlayerConnected(long id)
 	{
-		GD.Print(id);
+		GDPrint.Print($"Player <{id}> connected.");
 	}
 
 	private void PlayerDisconnected(long id)
 	{
-		GD.Print("Player Disconnected: " + id.ToString());
-		GameManager.Players.Remove(GameManager.Players.Where(i => i.Id == id).First<PlayerInfo>());
+		GDPrint.Print($"Player <{id}> disconected.");
+		bool success = GameManager.Players.Remove(GameManager.Players.FirstOrDefault(i => i.Id == id));
+		if (!success){
+			GDPrint.PrintErr($"Player <{id}> was not in the list of current players");
+		}
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -40,17 +48,20 @@ public partial class MultiplayerController : Control
 
 	private void HostGame()
 	{
-		peer = new ENetMultiplayerPeer();
-		var status = peer.CreateServer(port, 2);
+		_peer = new ENetMultiplayerPeer();
+		var status = _peer.CreateServer(_port, _maxPlayerCount);
 		if (status != Error.Ok)
 		{
-			GD.Print("create server failed");
+			GDPrint.PrintErr("Server could not be created:");
+			GDPrint.PrintErr($"Port: {_port}");
+			GDPrint.PrintErr($"PlayerCount: {_maxPlayerCount}");
 			return;
 		}
 
-		peer.Host.Compress(ENetConnection.CompressionMode.RangeCoder);
-		Multiplayer.MultiplayerPeer = peer;
-		GD.Print("waiting for players");
+		_peer.Host.Compress(ENetConnection.CompressionMode.RangeCoder);
+		Multiplayer.MultiplayerPeer = _peer;
+		GDPrint.Print("Server started SUCCESSFULLY.");
+		GDPrint.Print("Waiting for players to connect ...");
 	}
 
 	public void _on_host_pressed()
@@ -60,6 +71,7 @@ public partial class MultiplayerController : Control
 
 	public void _on_start_game_pressed()
 	{
+		GDPrint.Print("Starting game for all connected peers.");
 		Rpc("StartGame");
 	}
 
@@ -71,24 +83,15 @@ public partial class MultiplayerController : Control
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer)]
 	public void SendPlayerInformation(string name, int id)
 	{
-		GD.Print("SendPlayerInformation");
-
 		PlayerInfo playerInfo = new PlayerInfo()
 		{
 			Name = name,
 			Id = id
 		};
 
-		if (!GameManager.Players.Contains(playerInfo))
-		{
-			GameManager.Players.Add(playerInfo);
-		}
+		GDPrint.Print(playerInfo.ToString());
 
-		foreach (PlayerInfo player in GameManager.Players)
-		{
-			Rpc("SendPlayerInformation", player.Name, player.Id);
-
-			GD.Print(player);
-		}
+		GameManager.Players.Add(playerInfo);
+		GameManager.Players.Each(player => Rpc("SendPlayerInformation", player.Name, player.Id));
 	}
 }
