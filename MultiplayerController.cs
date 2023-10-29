@@ -20,11 +20,14 @@ public partial class MultiplayerController : Control
 		Multiplayer.PeerConnected += PlayerConnected;
 		Multiplayer.PeerDisconnected += PlayerDisconnected;
 
-		if (OS.GetCmdlineArgs().Contains("--server"))
-		{
-			GDPrint.Print("Starting server in headless mode.");
-			HostGame();
-		}
+
+		HostGame();
+		this.Hide();
+		// if (OS.GetCmdlineArgs().Contains("--server"))
+		// {
+		// 	GDPrint.Print("Starting server in headless mode.");
+		// 	HostGame();
+		// }
 	}
 
 	private void PlayerConnected(long id)
@@ -64,23 +67,7 @@ public partial class MultiplayerController : Control
 		GDPrint.Print("Waiting for players to connect ...");
 	}
 
-	public void _on_host_pressed()
-	{
-		HostGame();
-	}
-
-	public void _on_start_game_pressed()
-	{
-		GDPrint.Print("Starting game for all connected peers.");
-		Rpc("StartGame");
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void StartGame()
-	{
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal =false)]
 	public void SendPlayerInformation(string name, int id)
 	{
 		PlayerInfo playerInfo = new PlayerInfo()

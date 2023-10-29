@@ -8,24 +8,3 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("1_nxc8m")
-
-[node name="Host" type="Button" parent="."]
-layout_mode = 0
-offset_left = 476.0
-offset_top = 261.0
-offset_right = 770.0
-offset_bottom = 389.0
-theme_override_font_sizes/font_size = 28
-text = "Host"
-
-[node name="StartGame" type="Button" parent="."]
-layout_mode = 0
-offset_left = 480.0
-offset_top = 420.0
-offset_right = 786.0
-offset_bottom = 529.0
-theme_override_font_sizes/font_size = 28
-text = "Start Game"
-
-[connection signal="pressed" from="Host" to="." method="_on_host_pressed"]
-[connection signal="pressed" from="StartGame" to="." method="_on_start_game_pressed"]
