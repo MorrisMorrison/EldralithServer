@@ -16,7 +16,8 @@ public partial class MultiplayerController : Control
 		Multiplayer.PeerConnected += PlayerConnected;
 		Multiplayer.PeerDisconnected += PlayerDisconnected;
 
-		if(OS.GetCmdlineArgs().Contains("--server")){
+		if (OS.GetCmdlineArgs().Contains("--server"))
+		{
 			HostGame();
 		}
 	}
@@ -28,7 +29,8 @@ public partial class MultiplayerController : Control
 
 	private void PlayerDisconnected(long id)
 	{
-		GD.Print(id);
+		GD.Print("Player Disconnected: " + id.ToString());
+		GameManager.Players.Remove(GameManager.Players.Where(i => i.Id == id).First<PlayerInfo>());
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -36,7 +38,8 @@ public partial class MultiplayerController : Control
 	{
 	}
 
-	private void HostGame(){
+	private void HostGame()
+	{
 		peer = new ENetMultiplayerPeer();
 		var status = peer.CreateServer(port, 2);
 		if (status != Error.Ok)
@@ -57,32 +60,34 @@ public partial class MultiplayerController : Control
 
 	public void _on_start_game_pressed()
 	{
-		GD.Print("go");
 		Rpc("StartGame");
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	private void StartGame()
 	{
-		this.Hide();
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-	public void SendPlayerInformation(string name, int id){
+	public void SendPlayerInformation(string name, int id)
+	{
 		GD.Print("SendPlayerInformation");
 
-		PlayerInfo playerInfo = new PlayerInfo(){
-			Name= name,
+		PlayerInfo playerInfo = new PlayerInfo()
+		{
+			Name = name,
 			Id = id
 		};
 
-		if (!GameManager.Players.Contains(playerInfo)){
+		if (!GameManager.Players.Contains(playerInfo))
+		{
 			GameManager.Players.Add(playerInfo);
 		}
 
-		foreach (PlayerInfo player in GameManager.Players){
+		foreach (PlayerInfo player in GameManager.Players)
+		{
 			Rpc("SendPlayerInformation", player.Name, player.Id);
-		
+
 			GD.Print(player);
 		}
 	}
